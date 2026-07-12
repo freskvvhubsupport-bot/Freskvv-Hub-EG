@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="gradF" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#4f9fff" />
+    <stop offset="100%" stop-color="#8b5cf6" />
+  </linearGradient>
+  <linearGradient id="gradT" x1="0%" y1="100%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#22d3ee" />
+    <stop offset="100%" stop-color="#4f9fff" />
+  </linearGradient>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="15" result="blur" />
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+
+<!-- Tech Ring / Shield Accent -->
+<circle cx="256" cy="256" r="230" fill="none" stroke="url(#gradT)" stroke-width="8" stroke-dasharray="20 40 100 40" opacity="0.3" filter="url(#glow)" />
+<circle cx="256" cy="256" r="200" fill="none" stroke="url(#gradF)" stroke-width="2" opacity="0.2" />
+
+<!-- Glow Background -->
+<circle cx="256" cy="256" r="160" fill="#8b5cf6" opacity="0.08" filter="url(#glow)" />
+
+<!-- The letter F -->
+<path d="M140 120 h130 l-30 40 h-100 v60 h80 l-30 40 h-50 v130 h-40 v-270 z" fill="url(#gradF)" filter="url(#glow)"/>
+
+<!-- The letter T -->
+<path d="M230 180 h150 l-30 40 h-40 v170 h-40 v-170 h-40 z" fill="url(#gradT)" filter="url(#glow)"/>
+
+<!-- Tech Accent Dots -->
+<circle cx="360" cy="140" r="14" fill="#22d3ee" filter="url(#glow)"/>
+<circle cx="160" cy="410" r="10" fill="#8b5cf6" filter="url(#glow)"/>
+<circle cx="440" cy="256" r="6" fill="#4f9fff" filter="url(#glow)"/>
+<circle cx="72" cy="256" r="6" fill="#8b5cf6" filter="url(#glow)"/>
+</svg>
