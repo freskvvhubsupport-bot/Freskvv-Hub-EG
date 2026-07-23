@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Star, Quote } from 'lucide-react';
+import { Star, Quote, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import './Testimonials.css';
 
@@ -96,6 +97,12 @@ export default function Testimonials() {
                 onClick={() => setActiveIndex(idx)}
               />
             ))}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: 32 }}>
+            <Link to="/community" className="btn-ghost" style={{ fontSize: 'var(--font-size-sm)', padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              عرض جميع التقييمات أو شاركنا رأيك <ArrowLeft size={16} />
+            </Link>
           </div>
         </div>
       </div>

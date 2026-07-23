@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Plus, Pencil, Trash2, Eye, EyeOff, DownloadCloud } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, DownloadCloud, Star, CheckCircle2, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { SERVICES } from '../../data/servicesData';
 
 export default function AdminSections() {
   const [sections, setSections] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -30,6 +31,33 @@ export default function AdminSections() {
     else if (/ألعاب|شحن|game/i.test(name)) { icon = 'Gamepad2'; slug = slug || 'games'; }
 
     return { icon, slug };
+  };
+
+  // Listen to reviews
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'reviews'), snap => {
+      setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, []);
+
+  const approveReview = async (reviewId) => {
+    try {
+      await updateDoc(doc(db, 'reviews', reviewId), { status: 'approved' });
+      toast.success('تم قبول رأي العميل وسوف يظهر على الموقع الآن ✅');
+    } catch {
+      toast.error('حدث خطأ أثناء تفعيل رأي العميل');
+    }
+  };
+
+  const deleteReview = async (reviewId) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا التقييم؟')) return;
+    try {
+      await deleteDoc(doc(db, 'reviews', reviewId));
+      toast.success('تم حذف التقييم');
+    } catch {
+      toast.error('حدث خطأ أثناء الحذف');
+    }
   };
 
   const handleNameChange = (e) => {
@@ -170,6 +198,57 @@ export default function AdminSections() {
               </tbody>
             </table>
           )
+        )}
+      </div>
+
+      {/* Reviews Moderation Card */}
+      <div className="admin-card" style={{ marginTop: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <MessageSquare size={22} color="var(--accent-blue)" /> إدارة ومراجعة آراء العملاء
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>الموافقة على الآراء المكتوبة ليتم نشرها في صفحة المجتمع والرئيسية</p>
+          </div>
+          <span style={{ background: 'rgba(79,159,255,0.1)', color: 'var(--accent-blue-bright)', padding: '4px 12px', borderRadius: 99, fontSize: 12, fontWeight: 700 }}>
+            {reviews.filter(r => r.status === 'pending').length} رأي قيد الانتظار
+          </span>
+        </div>
+
+        {reviews.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>لا توجد تقييمات مكتوبة حتى الآن.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {reviews.map(rev => (
+              <div key={rev.id} style={{ background: 'rgba(0,0,0,0.2)', border: rev.status === 'pending' ? '1px solid rgba(234,179,8,0.3)' : '1px solid var(--border-glass)', borderRadius: 14, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                    <span style={{ fontWeight: 800 }}>{rev.authorName || 'مستخدم'}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{rev.service}</span>
+                    <span style={{ fontSize: 12, color: '#facc15' }}>{'⭐'.repeat(rev.rating || 5)}</span>
+                    {rev.status === 'pending' ? (
+                      <span style={{ background: 'rgba(234,179,8,0.2)', color: '#eab308', padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700 }}>معلق ⏳</span>
+                    ) : (
+                      <span style={{ background: 'rgba(34,197,94,0.2)', color: '#22c55e', padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700 }}>معتمد ✅</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{rev.title}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{rev.body}</div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {rev.status === 'pending' && (
+                    <button className="btn-primary" style={{ padding: '6px 14px', fontSize: 12, background: '#22c55e' }} onClick={() => approveReview(rev.id)}>
+                      موافقة ونشر
+                    </button>
+                  )}
+                  <button className="btn-icon" style={{ color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', padding: '6px 12px', borderRadius: 8 }} onClick={() => deleteReview(rev.id)}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

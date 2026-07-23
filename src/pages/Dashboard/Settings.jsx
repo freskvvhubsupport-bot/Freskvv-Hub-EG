@@ -1,6 +1,6 @@
 // Freskvv Tec EG — Settings Page
 import { useState } from 'react';
-import { Bell, Lock, Smartphone, Shield, Key, Mail, ArrowRight } from 'lucide-react';
+import { Bell, Lock, Smartphone, Shield, Key, Mail, ArrowRight, Info } from 'lucide-react';
 import { updatePassword, sendEmailVerification } from 'firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -14,20 +14,12 @@ export default function Settings() {
     email: true,
     promos: true
   });
-  const [twoFactor, setTwoFactor] = useState(false);
+  const [twoFactor] = useState(false); // قادم قريباً
   const [passwordFormOpen, setPasswordFormOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [changingPwd, setChangingPwd] = useState(false);
 
-  const toggle2FA = () => {
-    if (!twoFactor) {
-      toast.success('تم إرسال كود تفعيل على بريدك الإلكتروني لتأكيد تشغيل التحقق بخطوتين');
-      setTwoFactor(true);
-    } else {
-      toast.success('تم تعطيل ميزة التحقق بخطوتين');
-      setTwoFactor(false);
-    }
-  };
+  // 2FA مؤجل للإصدار القادم
 
   const toggleNotif = (key) => {
     setNotifications(prev => {
@@ -102,20 +94,16 @@ export default function Settings() {
               <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 800 }}>الأمان والخصوصية</h2>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'rgba(79,159,255,0.04)', borderRadius: 'var(--radius-lg)', border: '1px dashed rgba(79,159,255,0.2)' }}>
               <div>
                 <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Lock size={16} /> التحقق بخطوتين (2FA)
                 </div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>أضف طبقة أمان إضافية لحسابك</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--accent-blue-bright)', display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
+                  <Info size={12} /> هذه الميزة ستتوفر قريباً في التحديث القادم
+                </div>
               </div>
-              <button 
-                className={twoFactor ? "btn-ghost" : "btn-primary"} 
-                style={{ padding: '6px 12px', fontSize: 'var(--font-size-xs)' }}
-                onClick={toggle2FA}
-              >
-                {twoFactor ? 'تعطيل' : 'تفعيل'}
-              </button>
+              <span style={{ fontSize: 11, background: 'rgba(79,159,255,0.15)', color: 'var(--accent-blue-bright)', padding: '4px 10px', borderRadius: 99, fontWeight: 700 }}>قريباً</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-lg)' }}>

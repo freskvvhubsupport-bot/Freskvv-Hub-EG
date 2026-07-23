@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
@@ -11,6 +13,10 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotDone, setForgotDone] = useState(false);
   const { login, loginWithGoogle, createUserDocument } = useAuth();
   const navigate = useNavigate();
 
@@ -49,9 +55,37 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       console.error("Google Auth Error:", err);
-      setError(`فشل تسجيل الدخول بجوجل: ${err.message || err.code || 'خطأ غير معروف'}`);
+      const googleMsgs = {
+        'auth/popup-closed-by-user': 'تم إغلاق نافذة تسجيل الدخول',
+        'auth/cancelled-popup-request': 'تم إلغاء طلب تسجيل الدخول',
+        'auth/popup-blocked': 'المتصفح يمنع النوافذ المنبثقة، يرجى السماح بها',
+        'auth/account-exists-with-different-credential': 'هذا البريد مسجل بطريقة أخرى، جرّب تسجيل الدخول بالبريد وكلمة المرور',
+        'auth/unauthorized-domain': 'هذا النطاق غير مصرح له بتسجيل الدخول عبر جوجل. تواصل مع الدعم الفني.',
+        'auth/internal-error': 'خطأ داخلي في الخادم، حاول مرة أخرى',
+        'auth/network-request-failed': 'مشكلة في الاتصال بالإنترنت، تحقق من اتصالك',
+      };
+      setError(googleMsgs[err.code] || 'فشل تسجيل الدخول بجوجل. تأكد أنك تستخدم حساب جوجل صالح وحاول مرة أخرى.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail.trim()) { toast.error('يرجى إدخال بريدك الإلكتروني'); return; }
+    setForgotLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, forgotEmail.trim());
+      setForgotDone(true);
+      toast.success('تم إرسال رابط إعادة التعيين لبريدك الإلكتروني 📩');
+    } catch (err) {
+      const msgs = {
+        'auth/user-not-found': 'هذا البريد الإلكتروني غير مسجل',
+        'auth/invalid-email': 'بريد إلكتروني غير صالح',
+        'auth/too-many-requests': 'تجاوزت الحد المسموح، حاول لاحقاً',
+      };
+      toast.error(msgs[err.code] || 'حدث خطأ، حاول مرة أخرى');
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -123,6 +157,16 @@ export default function Login() {
             </div>
           </div>
 
+          <div style={{ textAlign: 'left', marginBottom: 8 }}>
+            <button
+              type="button"
+              onClick={() => { setForgotOpen(true); setForgotDone(false); setForgotEmail(form.email); }}
+              style={{ background: 'none', border: 'none', color: 'var(--accent-blue-bright)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-primary)', fontWeight: 600, padding: 0 }}
+            >
+              نسيت كلمة المرور؟
+            </button>
+          </div>
+
           <button id="login-submit" className="btn-primary btn-auth" type="submit" disabled={loading}>
             {loading ? <><div className="spinner" /> جاري الدخول...</> : 'تسجيل الدخول'}
           </button>
@@ -132,6 +176,50 @@ export default function Login() {
           مش عندك حساب؟ <Link to="/auth/register">إنشاء حساب مجاني</Link>
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      {forgotOpen && (
+        <div className="modal-overlay" onClick={() => setForgotOpen(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            {forgotDone ? (
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <div style={{ fontSize: 56, marginBottom: 16 }}>📩</div>
+                <h3 className="modal-title">تم الإرسال!</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 24 }}>
+                  تم إرسال رابط إعادة تعيين كلمة المرور إلى <strong style={{ color: 'var(--accent-blue-bright)' }}>{forgotEmail}</strong>
+                  <br />افتح بريدك واتبع التعليمات.
+                </p>
+                <button className="btn-primary" onClick={() => setForgotOpen(false)} style={{ width: '100%', justifyContent: 'center' }}>موافق</button>
+              </div>
+            ) : (
+              <>
+                <h3 className="modal-title">🔑 نسيت كلمة المرور؟</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20, lineHeight: 1.7 }}>
+                  أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور
+                </p>
+                <div className="form-group" style={{ marginBottom: 20 }}>
+                  <label className="form-label">البريد الإلكتروني</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    dir="ltr"
+                    onKeyDown={e => e.key === 'Enter' && handleForgotPassword()}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button className="btn-ghost" onClick={() => setForgotOpen(false)} style={{ flex: 1, justifyContent: 'center' }}>إلغاء</button>
+                  <button className="btn-primary" onClick={handleForgotPassword} disabled={forgotLoading} style={{ flex: 2, justifyContent: 'center' }}>
+                    {forgotLoading ? <><div className="spinner" /> جاري الإرسال...</> : 'إرسال رابط التعيين'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

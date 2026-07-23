@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Wallet, User, LogOut, Settings, LayoutDashboard, Menu, X, CheckCircle2, Globe } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
@@ -11,8 +13,9 @@ const NAV_LINKS_AR = [
   { label: 'الرئيسية', to: '/' },
   { label: 'خدماتنا', to: '/services' },
   { label: 'متجر الألعاب', to: '/game-store' },
-  { label: 'خدمة مخصصة', to: '/custom-service' },
-  { label: 'التعليم', to: '/learning' },
+  { label: 'طلب مخصص', to: '/custom-service' },
+  { label: 'آراء العملاء', to: '/community' },
+  { label: 'الشروحات', to: '/learning' },
 ];
 
 const NAV_LINKS_EN = [
@@ -20,14 +23,15 @@ const NAV_LINKS_EN = [
   { label: 'Services', to: '/services' },
   { label: 'Game Store', to: '/game-store' },
   { label: 'Custom Request', to: '/custom-service' },
-  { label: 'Learning', to: '/learning' },
+  { label: 'Reviews', to: '/community' },
+  { label: 'Academy', to: '/learning' },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [notifCount] = useState(3);
+  const [notifCount, setNotifCount] = useState(0);
   const { currentUser, userProfile, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,6 +41,17 @@ export default function Navbar() {
 
   const isAr = language === 'ar';
   const navLinks = isAr ? NAV_LINKS_AR : NAV_LINKS_EN;
+
+  // جلب عدد الإشعارات العامة real-time
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'global_notifications'), snap => {
+      // تخزين المقروءة في localStorage
+      const readIds = JSON.parse(localStorage.getItem('readNotifIds') || '[]');
+      const unread = snap.docs.filter(d => !readIds.includes(d.id)).length;
+      setNotifCount(unread);
+    });
+    return unsub;
+  }, []);
 
   // Sync i18next with SettingsContext language
   useEffect(() => {

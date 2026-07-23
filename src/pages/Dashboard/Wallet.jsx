@@ -1,6 +1,6 @@
 // Freskvv Tec EG — Wallet Page
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import { ArrowDownCircle, ArrowUpCircle, Clock, RefreshCw, Wallet as WalletIcon, UploadCloud, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -151,17 +151,102 @@ export default function Wallet() {
       return;
     }
     setSubmitting(true);
-    // Dummy validation for promo codes
-    setTimeout(() => {
-      if (promoCode.toUpperCase() === 'WELCOME50') {
-        toast.success('🎉 تم تفعيل الكود بنجاح! إضافة 50 ج.م لمحفظتك');
-        setPromoModalOpen(false);
-        setPromoCode('');
-      } else {
-        toast.error('الكود غير صحيح أو منتهي الصلاحية');
+    try {
+      // البحث عن الكود في Firebase
+      const q = query(
+        collection(db, 'discount_codes'),
+        where('code', '==', promoCode.trim().toUpperCase()),
+        where('active', '==', true)
+      );
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        toast.error('الكود غير صحيح أو غير موجود');
+        setSubmitting(false);
+        return;
       }
+
+      const codeDoc = snap.docs[0];
+      const codeData = codeDoc.data();
+
+      // التحقق من الانتهاء
+      if (codeData.expiresAt) {
+        const expDate = codeData.expiresAt.toDate ? codeData.expiresAt.toDate() : new Date(codeData.expiresAt);
+        if (expDate < new Date()) {
+          toast.error('انتهت صلاحية هذا الكود');
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // التحقق من عدد الاستخدامات
+      const usedCount = codeData.usedCount || 0;
+      const maxUses = codeData.maxUses || 1;
+      if (usedCount >= maxUses) {
+        toast.error('تم استنفاد جميع استخدامات هذا الكود');
+        setSubmitting(false);
+        return;
+      }
+
+      // تحقق من أن المستخدم لم يستخدم الكود قبل
+      const usedBy = codeData.usedBy || [];
+      if (usedBy.includes(currentUser.uid)) {
+        toast.error('لقد استخدمت هذا الكود من قبل');
+        setSubmitting(false);
+        return;
+      }
+
+      // حساب المبلغ المضاف
+      let bonusAmount = 0;
+      if (codeData.type === 'discount') {
+        if (codeData.discountType === 'fixed') {
+          bonusAmount = codeData.discountValue || 0;
+        } else {
+          // percent — خصم على رصيد المحفظة الحالي (حد أدنى 5)
+          const currentBalance = userProfile?.walletBalance ?? 0;
+          bonusAmount = Math.round((currentBalance * (codeData.discountValue || 0)) / 100);
+          bonusAmount = Math.max(bonusAmount, 5);
+        }
+      } else if (codeData.type === 'game_recharge') {
+        bonusAmount = codeData.rechargeAmount || 0;
+      }
+
+      if (bonusAmount <= 0) {
+        toast.error('الكود غير صالح للاستخدام');
+        setSubmitting(false);
+        return;
+      }
+
+      // إضافة الرصيد للمستخدم
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        walletBalance: increment(bonusAmount),
+      });
+
+      // تسجيل المعاملة
+      await addDoc(collection(db, 'transactions'), {
+        uid: currentUser.uid,
+        amount: bonusAmount,
+        type: 'deposit',
+        description: `كود خصم: ${promoCode.trim().toUpperCase()}`,
+        createdAt: serverTimestamp(),
+      });
+
+      // تحديث عداد الاستخدام في الكود
+      await updateDoc(doc(db, 'discount_codes', codeDoc.id), {
+        usedCount: increment(1),
+        usedBy: [...usedBy, currentUser.uid],
+      });
+
+      toast.success(`🎉 تم تفعيل الكود بنجاح! إضافة ${bonusAmount} ج.م لمحفظتك`);
+      setPromoModalOpen(false);
+      setPromoCode('');
+    } catch (err) {
+      console.error('Promo error:', err);
+      toast.error('حدث خطأ أثناء تفعيل الكود');
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
   const formatDate = (ts) => {

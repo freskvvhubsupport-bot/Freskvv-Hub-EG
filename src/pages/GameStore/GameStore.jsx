@@ -4,7 +4,7 @@ import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increm
 import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { GamepadIcon, ShoppingCart, Wallet, CheckCircle2, AlertCircle, ChevronDown } from 'lucide-react';
+import { GamepadIcon, ShoppingCart, Wallet, CheckCircle2, AlertCircle, Search, X as XIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -51,6 +51,8 @@ export default function GameStore() {
   const [playerID, setPlayerID] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [userWallet, setUserWallet] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'game_store'), snap => {
@@ -127,7 +129,14 @@ export default function GameStore() {
   };
 
   // Group by category
-  const categories = [...new Set(items.map(i => i.category))];
+  const categories = ['all', ...new Set(items.map(i => i.category).filter(Boolean))];
+
+  // Filtered items
+  const filteredItems = items.filter(item => {
+    const matchSearch = !searchQuery || item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || item.category?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCat = activeCategory === 'all' || item.category === activeCategory;
+    return matchSearch && matchCat;
+  });
 
   return (
     <div className="services-page" style={{ paddingTop: '120px' }}>
@@ -138,15 +147,70 @@ export default function GameStore() {
           <p style={{ color: 'var(--text-muted)' }}>اشحن ألعابك المفضلة فوراً وبأرخص الأسعار مع نظام تسليم آمن</p>
         </div>
 
+        {/* Search + Filter */}
+        {!loading && items.length > 0 && (
+          <div style={{ marginBottom: 36 }}>
+            {/* Search Bar */}
+            <div style={{ position: 'relative', maxWidth: 520, margin: '0 auto 20px' }}>
+              <Search size={18} style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                className="form-input"
+                placeholder="ابحث عن لعبة..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ paddingRight: 48, paddingLeft: searchQuery ? 44 : 16, width: '100%', fontSize: '1rem' }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{ position: 'absolute', top: '50%', left: 14, transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
+                >
+                  <XIcon size={16} />
+                </button>
+              )}
+            </div>
+            {/* Category Pills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  style={{
+                    padding: '7px 18px',
+                    borderRadius: 99,
+                    fontSize: 13,
+                    fontFamily: 'var(--font-primary)',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    border: activeCategory === cat ? '1px solid var(--accent-blue)' : '1px solid var(--border-glass)',
+                    background: activeCategory === cat ? 'rgba(79,159,255,0.2)' : 'rgba(255,255,255,0.03)',
+                    color: activeCategory === cat ? 'var(--accent-blue-bright)' : 'var(--text-secondary)',
+                  }}
+                >
+                  {cat === 'all' ? '🎮 الكل' : cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: 48 }}>جاري تحميل المنتجات...</div>
         ) : items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, background: 'var(--bg-secondary)', borderRadius: 16 }}>
             <p>لا توجد منتجات متاحة حالياً. يرجى العودة لاحقاً.</p>
           </div>
+        ) : filteredItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 80, background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid var(--border-glass)' }}>
+            <Search size={48} style={{ opacity: 0.2, margin: '0 auto 16px' }} />
+            <h3 style={{ marginBottom: 8 }}>لا توجد نتائج</h3>
+            <p style={{ color: 'var(--text-muted)' }}>جرّب كلمة بحث مختلفة أو اختر تصنيفاً آخر</p>
+          </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
-            {items.map((item, i) => {
+            {filteredItems.map((item, i) => {
               const img = getGameImage(item);
               const tiers = item.tiers || [];
               const minPrice = tiers.length > 0 ? Math.min(...tiers.map(t => t.price)) : (item.price || 0);

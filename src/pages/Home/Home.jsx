@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import Testimonials from '../../components/UI/Testimonials';
+import Portfolio from '../../components/UI/Portfolio';
 import './Home.css';
 
 // Animated stars generator
@@ -127,12 +128,13 @@ export default function Home() {
               </p>
 
               <div className="hero-actions">
-                <Link to="/services" className="btn-primary" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
+                <Link to="/custom-service" className="btn-primary" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
                   <Zap size={18} />
-                  استكشف الخدمات
+                  ابدأ مشروعك الآن
                 </Link>
-                <Link to="/auth/register" className="btn-ghost" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
-                  إنشاء حساب مجاناً
+                <Link to="/services" className="btn-ghost" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
+                  <Rocket size={18} />
+                  استكشف الخدمات
                 </Link>
               </div>
 
@@ -251,8 +253,8 @@ export default function Home() {
                   <p className="service-desc">{service.desc}</p>
                   <div className="service-packages">
                     <span className="service-pkg-count">{service.packages ? service.packages.length : 0} باقات متاحة</span>
-                    <div className="service-arrow">
-                      <ChevronLeft size={16} />
+                    <div className="service-arrow" style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--accent-blue-bright)', fontWeight: 700, fontSize: 13 }}>
+                      عرض الخدمة والباقات <ChevronLeft size={16} />
                     </div>
                   </div>
                 </Link>
@@ -298,6 +300,9 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* ── Portfolio Section ── */}
+      <Portfolio />
 
       {/* ── Testimonials ── */}
       <Testimonials />

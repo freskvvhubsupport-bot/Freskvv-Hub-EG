@@ -31,11 +31,11 @@ export default function AdminOrders() {
 
   const cancelAndRefund = async (order) => {
     if (!window.confirm(`هل أنت متأكد من إلغاء الطلب واسترجاع ${order.price} ج.م إلى محفظة العميل؟`)) return;
-    
+
     try {
       // 1. Update order status
       await updateDoc(doc(db, 'orders', order.id), { status: 'cancelled' });
-      
+
       // 2. Refund wallet
       const userRef = doc(db, 'users', order.userId);
       await updateDoc(userRef, {
@@ -51,10 +51,10 @@ export default function AdminOrders() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'pending': return <span style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}><Clock size={12} style={{display:'inline', marginBottom:-2, marginLeft:4}}/> قيد الانتظار</span>;
+      case 'pending': return <span style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}><Clock size={12} style={{ display: 'inline', marginBottom: -2, marginLeft: 4 }} /> قيد الانتظار</span>;
       case 'in-progress': return <span style={{ background: 'rgba(79, 159, 255, 0.2)', color: 'var(--accent-blue)', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}>جاري التنفيذ</span>;
-      case 'completed': return <span style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}><CheckCircle2 size={12} style={{display:'inline', marginBottom:-2, marginLeft:4}}/> مكتمل</span>;
-      case 'cancelled': return <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}><XCircle size={12} style={{display:'inline', marginBottom:-2, marginLeft:4}}/> ملغي</span>;
+      case 'completed': return <span style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}><CheckCircle2 size={12} style={{ display: 'inline', marginBottom: -2, marginLeft: 4 }} /> مكتمل</span>;
+      case 'cancelled': return <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}><XCircle size={12} style={{ display: 'inline', marginBottom: -2, marginLeft: 4 }} /> ملغي</span>;
       default: return null;
     }
   };
@@ -91,8 +91,20 @@ export default function AdminOrders() {
                 <tr key={order.id}>
                   <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{order.id.slice(0, 8)}</td>
                   <td>
-                    <div style={{ fontWeight: 600 }}>{order.serviceName}</div>
+                    <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {order.serviceName}
+                      {order.isCustomQuote && (
+                        <span style={{ background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: 10, padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
+                          طلب مخصص 🛠️
+                        </span>
+                      )}
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{order.packageName}</div>
+                    {order.contactInfo?.phone && (
+                      <div style={{ fontSize: 11, color: 'var(--accent-blue-bright)', marginTop: 2, direction: 'ltr' }}>
+                        📞 {order.contactInfo.phone}
+                      </div>
+                    )}
                   </td>
                   <td>{order.projectName}</td>
                   <td style={{ fontWeight: 'bold', color: 'var(--accent-green-bright)' }}>{order.price} ج.م</td>
@@ -117,7 +129,7 @@ export default function AdminOrders() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: 'var(--bg-secondary)', padding: 32, borderRadius: 16, width: '100%', maxWidth: 500, border: '1px solid var(--border-glass)' }}>
             <h3 style={{ marginBottom: 24 }}>تفاصيل الطلب: {selectedOrder.projectName}</h3>
-            
+
             <div style={{ marginBottom: 16, background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 8 }}>
               <p><strong>الخدمة:</strong> {selectedOrder.serviceName} - {selectedOrder.packageName}</p>
               <p><strong>المبلغ المدفوع:</strong> {selectedOrder.price} ج.م</p>

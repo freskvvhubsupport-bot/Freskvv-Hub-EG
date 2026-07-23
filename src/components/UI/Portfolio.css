@@ -1,0 +1,199 @@
+/* Portfolio Section Styling */
+.portfolio-section {
+  padding: var(--space-24) 0;
+  position: relative;
+  background: radial-gradient(circle at 50% 0%, rgba(79, 159, 255, 0.05) 0%, transparent 60%);
+}
+
+.portfolio-filters {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-12);
+}
+
+.portfolio-filter-btn {
+  padding: 8px 20px;
+  border-radius: 99px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  font-family: var(--font-primary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.portfolio-filter-btn:hover {
+  border-color: rgba(79, 159, 255, 0.3);
+  color: var(--text-primary);
+}
+
+.portfolio-filter-btn.active {
+  background: rgba(79, 159, 255, 0.18);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue-bright);
+  box-shadow: 0 0 20px rgba(79, 159, 255, 0.2);
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+.portfolio-card {
+  background: rgba(13, 13, 34, 0.7);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+}
+
+.portfolio-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(79, 159, 255, 0.35);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(79, 159, 255, 0.12);
+}
+
+.portfolio-img-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.portfolio-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.portfolio-card:hover .portfolio-img-wrap img {
+  transform: scale(1.08);
+}
+
+.portfolio-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(34, 197, 94, 0.85);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
+.portfolio-category-tag {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  background: rgba(13, 13, 34, 0.85);
+  border: 1px solid rgba(79, 159, 255, 0.3);
+  color: var(--accent-blue-bright);
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
+.portfolio-body {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.portfolio-title {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.portfolio-desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-5);
+  flex: 1;
+}
+
+.portfolio-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-6);
+}
+
+.portfolio-tag {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.portfolio-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-glass);
+}
+
+.portfolio-stat {
+  font-size: var(--font-size-xs);
+  color: var(--accent-blue-bright);
+  font-weight: 700;
+}
+
+.portfolio-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.portfolio-link:hover {
+  color: var(--accent-blue-bright);
+}
+
+/* Portfolio CTA Box */
+.portfolio-cta {
+  background: linear-gradient(135deg, rgba(79, 159, 255, 0.1), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(79, 159, 255, 0.25);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8) var(--space-10);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.portfolio-cta h3 {
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+}
+
+.portfolio-cta p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  max-width: 500px;
+}

@@ -24,12 +24,14 @@ const Wallet          = lazy(() => import('./pages/Dashboard/Wallet'));
 const Settings        = lazy(() => import('./pages/Dashboard/Settings'));
 const Notifications   = lazy(() => import('./pages/Dashboard/Notifications'));
 const UserOrders      = lazy(() => import('./pages/Dashboard/UserOrders'));
+const UserPoints      = lazy(() => import('./pages/Dashboard/UserPoints'));
 const Services        = lazy(() => import('./pages/Services/Services'));
 const ServiceDetail   = lazy(() => import('./pages/Services/ServiceDetail'));
 const GameStore       = lazy(() => import('./pages/GameStore/GameStore'));
 const CustomService   = lazy(() => import('./pages/CustomService/CustomService'));
 const Learning        = lazy(() => import('./pages/Learning/Learning'));
 const Community       = lazy(() => import('./pages/Community/Community'));
+const TermsPrivacy    = lazy(() => import('./pages/TermsPrivacy'));
 
 const AdminLayout      = lazy(() => import('./pages/Admin/AdminLayout'));
 const AdminDashboard   = lazy(() => import('./pages/Admin/AdminDashboard'));
@@ -122,6 +124,8 @@ function AppRoutes() {
             <Route path="/custom-service"  element={<PageTransition><CustomService /></PageTransition>} />
             <Route path="/learning"        element={<PageTransition><Learning /></PageTransition>} />
             <Route path="/community"       element={<PageTransition><Community /></PageTransition>} />
+            <Route path="/terms"           element={<PageTransition><TermsPrivacy /></PageTransition>} />
+            <Route path="/privacy"         element={<PageTransition><TermsPrivacy /></PageTransition>} />
 
             {/* Auth */}
             <Route path="/auth/login"            element={<PageTransition><Login /></PageTransition>} />
@@ -133,6 +137,7 @@ function AppRoutes() {
             <Route path="/dashboard/wallet" element={<ProtectedRoute><PageTransition><Wallet /></PageTransition></ProtectedRoute>} />
             <Route path="/dashboard/notifications" element={<ProtectedRoute><PageTransition><Notifications /></PageTransition></ProtectedRoute>} />
             <Route path="/dashboard/orders" element={<ProtectedRoute><PageTransition><UserOrders /></PageTransition></ProtectedRoute>} />
+            <Route path="/dashboard/points" element={<ProtectedRoute><PageTransition><UserPoints /></PageTransition></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><PageTransition><Settings /></PageTransition></ProtectedRoute>} />
             <Route path="/dashboard/support" element={<ProtectedRoute><PageTransition><UserSupportChat /></PageTransition></ProtectedRoute>} />
 
