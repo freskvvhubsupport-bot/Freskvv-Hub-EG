@@ -9,6 +9,17 @@ export default class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    // If it's a dynamic import failure (new deployment uploaded to Vercel while tab was open)
+    const isChunkError = error?.message?.includes('Failed to fetch dynamically imported module') ||
+                         error?.message?.includes('Importing a module script failed') ||
+                         error?.name === 'ChunkLoadError';
+                         
+    if (isChunkError && !sessionStorage.getItem('chunk_reload_attempted')) {
+      sessionStorage.setItem('chunk_reload_attempted', 'true');
+      window.location.reload();
+      return { hasError: false, error: null };
+    }
+    
     return { hasError: true, error };
   }
 
