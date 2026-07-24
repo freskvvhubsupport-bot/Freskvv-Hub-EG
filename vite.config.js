@@ -8,6 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+      },
       includeAssets: ['favicon.svg', 'logo.svg'],
       manifest: {
         name: 'Freskvv Tec EG',

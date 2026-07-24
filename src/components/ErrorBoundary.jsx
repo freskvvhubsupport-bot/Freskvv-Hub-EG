@@ -27,6 +27,28 @@ export default class ErrorBoundary extends React.Component {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
+  handleHardReload = () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+    } catch { /* ignore */ }
+    sessionStorage.clear();
+    localStorage.removeItem('chunk_reload_attempted');
+    window.location.href = window.location.pathname + '?clear_cache=' + Date.now();
+  };
+
   render() {
     if (this.state.hasError) {
       const errMsg = this.state.error?.message || 'خطأ غير معروف';
@@ -63,7 +85,7 @@ export default class ErrorBoundary extends React.Component {
               عذراً، حدث خطأ غير متوقع!
             </h1>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.6' }}>
-              لقد واجه النظام مشكلة أثناء معالجة طلبك. لقد تم تسجيل هذا الخطأ ليتعامل معه فريق الدعم الفني.
+              لقد واجه النظام مشكلة أثناء معالجة طلبك. انقر على "تحديث وتفريغ الكاش" لجلب التحديثات الجديدة فوراً.
             </p>
             {/* Show actual error for debugging */}
             <div style={{
@@ -104,7 +126,7 @@ export default class ErrorBoundary extends React.Component {
                 رجوع
               </button>
               <button 
-                onClick={() => window.location.reload()}
+                onClick={this.handleHardReload}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -120,7 +142,7 @@ export default class ErrorBoundary extends React.Component {
                 }}
               >
                 <RefreshCw size={16} />
-                تحديث الصفحة
+                تحديث وتفريغ الكاش
               </button>
             </div>
           </motion.div>
