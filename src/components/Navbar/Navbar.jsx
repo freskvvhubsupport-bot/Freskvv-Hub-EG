@@ -1,7 +1,7 @@
 // Freskvv Tec EG — Navbar Component
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Wallet, User, LogOut, Settings, LayoutDashboard, Menu, X, CheckCircle2, Globe } from 'lucide-react';
+import { Bell, Wallet, User, LogOut, Settings, LayoutDashboard, Menu, X, CheckCircle2, Globe, Star, MessageSquare } from 'lucide-react';
 import { collection, onSnapshot, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,10 +33,9 @@ export default function Navbar() {
   const isAr = language === 'ar';
   const t = (key) => getTranslation(language, key);
 
-  // جلب عدد الإشعارات العامة real-time
+  // Real-time unread global notifications listener
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'global_notifications'), snap => {
-      // تخزين المقروءة في localStorage
       const readIds = JSON.parse(localStorage.getItem('readNotifIds') || '[]');
       const unread = snap.docs.filter(d => !readIds.includes(d.id)).length;
       setNotifCount(unread);
@@ -44,7 +43,7 @@ export default function Navbar() {
     return unsub;
   }, []);
 
-  // نشر إشعار تلقائي عام لجميع المستخدمين بالإضافات الجديدة
+  // Auto publish feature release notification to global_notifications
   useEffect(() => {
     const publishReleaseNotif = async () => {
       try {
@@ -53,7 +52,7 @@ export default function Navbar() {
         if (!snap.exists()) {
           await setDoc(notifDoc, {
             title: '🚀 إطلاق التحديثات والمميزات الجديدة في المنصة!',
-            message: 'يسعدنا الإعلان عن إطلاق: 1. قسم معرض الأعمال 2. طلب خدمة مخصصة وعرض سعر 3. شحن متجر الألعاب مع الفلترة 4. نظام النقاط والمكافآت ⭐ 5. دعم اللغتين العربية والإنجليزية وتحسين تجربة الموبايل بالكامل!',
+            message: 'يسعدنا الإعلان عن إطلاق: 1. معرض الأعمال 2. طلب خدمة مخصصة 3. متجر الألعاب 4. نظام النقاط والمكافآت ⭐ 5. دعم اللغتين العربية والإنجليزية وتحسين التصفح للموبايل!',
             createdAt: serverTimestamp(),
             type: 'announcement'
           });
@@ -90,13 +89,14 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     setDropdownOpen(false);
+    setMobileOpen(false);
     await logout();
     navigate('/');
   };
 
   const getInitials = () => {
     if (userProfile?.fullName) {
-      return userProfile.fullName.split(' ').map(n => n[0]).join('').slice(0, 2);
+      return userProfile.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
     }
     return currentUser?.email?.[0]?.toUpperCase() || 'U';
   };
@@ -127,9 +127,8 @@ export default function Navbar() {
                     <Link
                       to={item.to}
                       className={`navbar-link ${location.pathname === item.to ? 'active' : ''}`}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                     >
-                      {t(item.key)}
+                      <span>{t(item.key)}</span>
                       {hasNewBadge && (
                         <span className="new-badge">
                           {t('badgeNew')}
@@ -141,15 +140,14 @@ export default function Navbar() {
               })}
             </ul>
 
-            {/* Auth / User Area */}
+            {/* Actions / Auth Area */}
             <div className="navbar-actions">
-              {/* Language & Theme Toggle */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Language & Theme Toggles (Desktop / Tablet) */}
+              <div className="navbar-toggles-wrap">
                 <button
                   className="navbar-lang-btn"
                   onClick={toggleTheme}
                   title="تغيير المظهر"
-                  style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', cursor: 'pointer', color: 'var(--text-primary)' }}
                 >
                   {theme === 'midnight' ? '🌙' : theme === 'light' ? '☀️' : '⚡'}
                 </button>
@@ -157,47 +155,32 @@ export default function Navbar() {
                   className="navbar-lang-btn"
                   onClick={toggleLanguage}
                   title={isAr ? 'Switch to English' : 'التحويل للعربية'}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
                 >
-                  <Globe size={18} />
+                  <Globe size={15} />
                   <span>{isAr ? 'EN' : 'عربي'}</span>
                 </button>
               </div>
+
               {currentUser ? (
                 <>
-                  {/* Wallet */}
-                  <button
-                    className="navbar-wallet"
-                    onClick={() => navigate('/dashboard/wallet')}
-                    title={t('navWallet')}
-                  >
-                    <Wallet size={16} />
-                    <span>{userProfile?.walletBalance ?? 0} {t('currency')}</span>
-                  </button>
-
-                  {/* Notifications */}
-                  <button className="navbar-notification-btn" onClick={() => navigate('/dashboard/notifications')}>
-                    <Bell size={18} />
-                    {notifCount > 0 && <span className="notification-dot" />}
-                  </button>
-
-                  {/* User Dropdown */}
+                  {/* User Profile Avatar Dropdown */}
                   <div style={{ position: 'relative' }} ref={dropdownRef}>
                     <button
                       className="navbar-avatar"
                       onClick={() => setDropdownOpen(v => !v)}
                       title={userProfile?.fullName || t('navDashboard')}
+                      aria-label="User Menu"
                     >
                       {getInitials()}
                     </button>
 
                     {dropdownOpen && (
                       <div className="navbar-dropdown">
-                        <div style={{ padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--border-glass)', marginBottom: 'var(--space-2)' }}>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        <div className="navbar-dropdown-header">
+                          <div className="navbar-dropdown-name">
                             {userProfile?.fullName || 'المستخدم'}
                           </div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginTop: 2 }}>
+                          <div className="navbar-dropdown-email">
                             {currentUser.email}
                           </div>
                         </div>
@@ -208,7 +191,11 @@ export default function Navbar() {
                         </Link>
                         <Link to="/dashboard/wallet" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <Wallet size={16} />
-                          {t('navWallet')}
+                          {t('navWallet')} ({userProfile?.walletBalance ?? 0} {t('currency')})
+                        </Link>
+                        <Link to="/dashboard/notifications" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                          <Bell size={16} />
+                          الإشعارات {notifCount > 0 && <span className="dropdown-notif-badge">{notifCount}</span>}
                         </Link>
                         <Link to="/dashboard/settings" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <Settings size={16} />
@@ -233,75 +220,169 @@ export default function Navbar() {
                       </div>
                     )}
                   </div>
+
+                  {/* Notification Bell Button */}
+                  <button 
+                    className="navbar-notification-btn" 
+                    onClick={() => navigate('/dashboard/notifications')}
+                    title="الإشعارات"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={18} />
+                    {notifCount > 0 && <span className="notification-badge-count">{notifCount}</span>}
+                  </button>
+
+                  {/* Wallet Balance Pill */}
+                  <button
+                    className="navbar-wallet"
+                    onClick={() => navigate('/dashboard/wallet')}
+                    title={t('navWallet')}
+                  >
+                    <Wallet size={15} />
+                    <span>{userProfile?.walletBalance ?? 0} {t('currency')}</span>
+                  </button>
                 </>
               ) : (
-                <>
-                  <Link to="/auth/login" className="btn-ghost" style={{ padding: 'var(--space-2) var(--space-5)', fontSize: 'var(--font-size-sm)' }}>
+                <div className="navbar-auth-btns">
+                  <Link to="/auth/login" className="btn-ghost" style={{ padding: '7px 16px', fontSize: '13px' }}>
                     {t('navLogin')}
                   </Link>
-                  <Link to="/auth/register" className="btn-primary" style={{ padding: 'var(--space-2) var(--space-5)', fontSize: 'var(--font-size-sm)' }}>
+                  <Link to="/auth/register" className="btn-primary" style={{ padding: '7px 18px', fontSize: '13px' }}>
                     {t('navRegister')}
                   </Link>
-                </>
+                </div>
               )}
 
-              {/* Mobile Menu Toggle */}
-              <button className="mobile-menu-btn" onClick={() => setMobileOpen(v => !v)}>
-                {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+              {/* Mobile Menu Toggle Button */}
+              <button 
+                className="mobile-menu-btn" 
+                onClick={() => setMobileOpen(v => !v)}
+                aria-label="Toggle Menu"
+              >
+                {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
+
           </div>
         </div>
       </nav>
 
-      {/* Mobile Nav Overlay */}
+      {/* Mobile Nav Overlay Drawer */}
       {mobileOpen && (
-        <div className="mobile-nav">
-          <button
-            style={{ position: 'absolute', top: 24, left: 24, background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
-            onClick={() => setMobileOpen(false)}
-          >
-            <X size={28} />
-          </button>
-
-          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-            <button
-              onClick={toggleTheme}
-              style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '14px' }}
-            >
-              {theme === 'midnight' ? '🌙 Night' : theme === 'light' ? '☀️ Light' : '⚡ Neon'}
-            </button>
-            <button
-              onClick={toggleLanguage}
-              style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(79,159,255,0.1)', border: '1px solid rgba(79,159,255,0.3)', cursor: 'pointer', color: 'var(--accent-blue-bright)', fontWeight: 'bold', fontSize: '14px' }}
-            >
-              🌐 {isAr ? 'English' : 'العربية'}
-            </button>
-          </div>
-
-          {NAV_ITEMS.map(item => {
-            const hasNewBadge = isFeatureNew(item.to);
-            return (
-              <Link key={item.to} to={item.to} className="mobile-nav-link" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                {t(item.key)}
-                {hasNewBadge && (
-                  <span className="new-badge">
-                    {t('badgeNew')}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-          {!currentUser ? (
-            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
-              <Link to="/auth/login" className="btn-ghost" onClick={() => setMobileOpen(false)}>{t('navLogin')}</Link>
-              <Link to="/auth/register" className="btn-primary" onClick={() => setMobileOpen(false)}>{t('navRegister')}</Link>
+        <div className="mobile-nav-overlay" onClick={() => setMobileOpen(false)}>
+          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()}>
+            
+            {/* Drawer Header */}
+            <div className="mobile-drawer-header">
+              <div className="navbar-logo-pill">
+                <img src="/logo.svg" alt="Freskvv Tec" style={{ width: 22, height: 22 }} />
+                <span className="navbar-logo-text" style={{ fontSize: '14px' }}>Freskvv Tec EG</span>
+              </div>
+              <button className="mobile-drawer-close" onClick={() => setMobileOpen(false)}>
+                <X size={22} />
+              </button>
             </div>
-          ) : (
-            <button className="btn-ghost" onClick={handleLogout}>{t('navLogout')}</button>
-          )}
+
+            {/* If Logged In User Card */}
+            {currentUser && (
+              <div className="mobile-user-card">
+                <div className="mobile-user-avatar">
+                  {getInitials()}
+                </div>
+                <div className="mobile-user-info">
+                  <div className="mobile-user-name">{userProfile?.fullName || 'المستخدم'}</div>
+                  <div className="mobile-user-email">{currentUser.email}</div>
+                </div>
+                <div className="mobile-user-balance">
+                  <span className="balance-val">💳 {userProfile?.walletBalance ?? 0} {t('currency')}</span>
+                  <span className="points-val">⭐ {userProfile?.points ?? 0} نقطة</span>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions (Toggles) */}
+            <div className="mobile-toggles-row">
+              <button className="mobile-toggle-btn" onClick={toggleTheme}>
+                {theme === 'midnight' ? '🌙 ليلي' : theme === 'light' ? '☀️ نهار' : '⚡ نيون'}
+              </button>
+              <button className="mobile-toggle-btn highlight" onClick={toggleLanguage}>
+                🌐 {isAr ? 'English' : 'العربية'}
+              </button>
+            </div>
+
+            {/* User Quick Dashboard Links */}
+            {currentUser && (
+              <div className="mobile-quick-grid">
+                <Link to="/dashboard" className="mobile-quick-item" onClick={() => setMobileOpen(false)}>
+                  <User size={18} />
+                  <span>لوحتي</span>
+                </Link>
+                <Link to="/dashboard/wallet" className="mobile-quick-item" onClick={() => setMobileOpen(false)}>
+                  <Wallet size={18} />
+                  <span>المحفظة</span>
+                </Link>
+                <Link to="/dashboard/notifications" className="mobile-quick-item" onClick={() => setMobileOpen(false)}>
+                  <Bell size={18} />
+                  <span>الإشعارات {notifCount > 0 && `(${notifCount})`}</span>
+                </Link>
+                <Link to="/dashboard/support" className="mobile-quick-item" onClick={() => setMobileOpen(false)}>
+                  <MessageSquare size={18} />
+                  <span>الدعم</span>
+                </Link>
+              </div>
+            )}
+
+            {/* Navigation Links */}
+            <div className="mobile-links-section">
+              <div className="mobile-section-title">التنقل السريع</div>
+              {NAV_ITEMS.map(item => {
+                const hasNewBadge = isFeatureNew(item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`mobile-nav-item ${location.pathname === item.to ? 'active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span>{t(item.key)}</span>
+                    {hasNewBadge && (
+                      <span className="new-badge">{t('badgeNew')}</span>
+                    )}
+                  </Link>
+                );
+              })}
+
+              {isAdmin && (
+                <Link to="/admin" className="mobile-nav-item admin-link" onClick={() => setMobileOpen(false)}>
+                  <LayoutDashboard size={18} />
+                  <span>لوحة الأدمن</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Footer Auth Actions */}
+            <div className="mobile-drawer-footer">
+              {!currentUser ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%' }}>
+                  <Link to="/auth/login" className="btn-ghost" onClick={() => setMobileOpen(false)} style={{ textAlign: 'center' }}>
+                    {t('navLogin')}
+                  </Link>
+                  <Link to="/auth/register" className="btn-primary" onClick={() => setMobileOpen(false)} style={{ textAlign: 'center' }}>
+                    {t('navRegister')}
+                  </Link>
+                </div>
+              ) : (
+                <button className="btn-ghost danger" onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <LogOut size={16} />
+                  {t('navLogout')}
+                </button>
+              )}
+            </div>
+
+          </div>
         </div>
       )}
     </>
   );
 }
+

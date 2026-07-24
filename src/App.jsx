@@ -11,7 +11,6 @@ import MouseGlow from './components/UI/MouseGlow';
 import LivePurchaseTicker from './components/UI/LivePurchaseTicker';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageTransition from './components/UI/PageTransition';
-import NewFeatureToast from './components/UI/NewFeatureToast';
 import { AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
@@ -177,7 +176,6 @@ export default function App() {
             <AIAssistant />
             <MouseGlow />
             <LivePurchaseTicker />
-            <NewFeatureToast />
             <Toaster
               position="top-center"
               toastOptions={{
