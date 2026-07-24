@@ -47,17 +47,26 @@ export function SettingsProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 3500);
+
     const unsub = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
+      clearTimeout(safetyTimer);
       if (docSnap.exists()) {
         setSettings(docSnap.data());
       }
       setLoading(false);
     }, (error) => {
+      clearTimeout(safetyTimer);
       console.error("Error fetching settings:", error);
       setLoading(false);
     });
 
-    return unsub;
+    return () => {
+      clearTimeout(safetyTimer);
+      unsub();
+    };
   }, []);
 
   // Maintenance screen logic
@@ -82,7 +91,24 @@ export function SettingsProvider({ children }) {
       language, 
       changeLanguage 
     }}>
-      {!loading && children}
+      {loading ? (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-primary, #0a0a1a)',
+        }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            border: '3px solid rgba(79,159,255,0.2)',
+            borderTop: '3px solid #4f9fff',
+            animation: 'spin 0.7s linear infinite',
+          }} />
+        </div>
+      ) : children}
     </SettingsContext.Provider>
   );
 }

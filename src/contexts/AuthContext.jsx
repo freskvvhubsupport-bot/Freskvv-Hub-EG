@@ -43,10 +43,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let unsubProfile = null;
+    
+    // Safety timeout to prevent indefinite blank screen if Firebase takes long to load
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 3500);
+
     const unsubAuth = onAuthStateChanged(auth, (user) => {
+      clearTimeout(safetyTimer);
       setCurrentUser(user);
       if (user) {
-        // Listen to user profile changes in real-time
         unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snap) => {
           if (snap.exists()) {
             const data = snap.data();
@@ -69,6 +75,7 @@ export function AuthProvider({ children }) {
       }
     });
     return () => {
+      clearTimeout(safetyTimer);
       unsubAuth();
       if (unsubProfile) unsubProfile();
     };
@@ -129,7 +136,24 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-primary, #0a0a1a)',
+        }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            border: '3px solid rgba(79,159,255,0.2)',
+            borderTop: '3px solid #4f9fff',
+            animation: 'spin 0.7s linear infinite',
+          }} />
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 }
