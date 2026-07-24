@@ -112,7 +112,7 @@ function AppRoutes() {
 
   return (
     <>
-      <Navbar />
+      {!isAdminRoute && <Navbar />}
       <Suspense fallback={<PageSpinner />}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
