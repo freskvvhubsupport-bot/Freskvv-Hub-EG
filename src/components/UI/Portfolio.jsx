@@ -1,5 +1,6 @@
 // Freskvv Tec EG — Portfolio Showcase Component
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, FolderKanban, Server, Smartphone, Globe, Shield, Sparkles, ArrowLeft } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext';
