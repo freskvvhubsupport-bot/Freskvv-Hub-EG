@@ -4,7 +4,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { LayoutDashboard, Users, Wallet, Layers, GamepadIcon, Wrench, MessageSquare, Bell, Package, Tag, Archive } from 'lucide-react';
-import './Admin.css';
+import { isFeatureNew } from '../../utils/newBadge';
 
 const ADMIN_NAV = [
   { label: 'الرئيسية', to: '/admin', icon: <LayoutDashboard size={18} />, exact: true },
@@ -60,6 +60,7 @@ export default function AdminLayout() {
             {ADMIN_NAV.map(nav => {
               const isActive = nav.exact ? location.pathname === nav.to : location.pathname.startsWith(nav.to);
               const badge = getBadgeCount(nav.to);
+              const hasNew = isFeatureNew(nav.to);
               return (
                 <Link
                   key={nav.to}
@@ -69,7 +70,12 @@ export default function AdminLayout() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                     {nav.icon}
-                    {nav.label}
+                    <span>{nav.label}</span>
+                    {hasNew && (
+                      <span className="new-badge" style={{ fontSize: '8px', padding: '1px 5px' }}>
+                        جديد ✨
+                      </span>
+                    )}
                   </div>
                   {badge > 0 && (
                     <span style={{ background: '#ef4444', color: 'white', fontSize: 11, fontWeight: 'bold', padding: '2px 6px', borderRadius: 10 }}>

@@ -2,29 +2,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Wallet, User, LogOut, Settings, LayoutDashboard, Menu, X, CheckCircle2, Globe } from 'lucide-react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
-import { useTranslation } from 'react-i18next';
+import { getTranslation } from '../../utils/translations';
+import { isFeatureNew } from '../../utils/newBadge';
 import './Navbar.css';
 
-const NAV_LINKS_AR = [
-  { label: 'الرئيسية', to: '/' },
-  { label: 'خدماتنا', to: '/services' },
-  { label: 'متجر الألعاب', to: '/game-store' },
-  { label: 'طلب مخصص', to: '/custom-service' },
-  { label: 'آراء العملاء', to: '/community' },
-  { label: 'الشروحات', to: '/learning' },
-];
-
-const NAV_LINKS_EN = [
-  { label: 'Home', to: '/' },
-  { label: 'Services', to: '/services' },
-  { label: 'Game Store', to: '/game-store' },
-  { label: 'Custom Request', to: '/custom-service' },
-  { label: 'Reviews', to: '/community' },
-  { label: 'Academy', to: '/learning' },
+const NAV_ITEMS = [
+  { key: 'navHome', to: '/' },
+  { key: 'navServices', to: '/services' },
+  { key: 'navGameStore', to: '/game-store' },
+  { key: 'navCustom', to: '/custom-service' },
+  { key: 'navReviews', to: '/community' },
+  { key: 'navAcademy', to: '/learning' },
 ];
 
 export default function Navbar() {
@@ -37,10 +29,9 @@ export default function Navbar() {
   const location = useLocation();
   const dropdownRef = useRef(null);
   const { language, changeLanguage, toggleTheme, theme } = useSettings();
-  const { i18n } = useTranslation();
 
   const isAr = language === 'ar';
-  const navLinks = isAr ? NAV_LINKS_AR : NAV_LINKS_EN;
+  const t = (key) => getTranslation(language, key);
 
   // جلب عدد الإشعارات العامة real-time
   useEffect(() => {
@@ -53,12 +44,26 @@ export default function Navbar() {
     return unsub;
   }, []);
 
-  // Sync i18next with SettingsContext language
+  // نشر إشعار تلقائي عام لجميع المستخدمين بالإضافات الجديدة
   useEffect(() => {
-    if (i18n.language !== language) {
-      i18n.changeLanguage(language);
-    }
-  }, [language, i18n]);
+    const publishReleaseNotif = async () => {
+      try {
+        const notifDoc = doc(db, 'global_notifications', 'release_v2_features');
+        const snap = await getDoc(notifDoc);
+        if (!snap.exists()) {
+          await setDoc(notifDoc, {
+            title: '🚀 إطلاق التحديثات والمميزات الجديدة في المنصة!',
+            message: 'يسعدنا الإعلان عن إطلاق: 1. قسم معرض الأعمال 2. طلب خدمة مخصصة وعرض سعر 3. شحن متجر الألعاب مع الفلترة 4. نظام النقاط والمكافآت ⭐ 5. دعم اللغتين العربية والإنجليزية وتحسين تجربة الموبايل بالكامل!',
+            createdAt: serverTimestamp(),
+            type: 'announcement'
+          });
+        }
+      } catch (err) {
+        console.error('Error publishing release notif:', err);
+      }
+    };
+    publishReleaseNotif();
+  }, []);
 
   const toggleLanguage = () => {
     const newLang = isAr ? 'en' : 'ar';
@@ -115,16 +120,25 @@ export default function Navbar() {
 
             {/* Desktop Nav Links */}
             <ul className="navbar-links">
-              {navLinks.map((link) => (
-                <li key={link.to}>
-                  <Link
-                    to={link.to}
-                    className={`navbar-link ${location.pathname === link.to ? 'active' : ''}`}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const hasNewBadge = isFeatureNew(item.to);
+                return (
+                  <li key={item.to}>
+                    <Link
+                      to={item.to}
+                      className={`navbar-link ${location.pathname === item.to ? 'active' : ''}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                    >
+                      {t(item.key)}
+                      {hasNewBadge && (
+                        <span className="new-badge">
+                          {t('badgeNew')}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
 
             {/* Auth / User Area */}
@@ -142,7 +156,8 @@ export default function Navbar() {
                 <button
                   className="navbar-lang-btn"
                   onClick={toggleLanguage}
-                  title="تغيير اللغة"
+                  title={isAr ? 'Switch to English' : 'التحويل للعربية'}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
                 >
                   <Globe size={18} />
                   <span>{isAr ? 'EN' : 'عربي'}</span>
@@ -154,10 +169,10 @@ export default function Navbar() {
                   <button
                     className="navbar-wallet"
                     onClick={() => navigate('/dashboard/wallet')}
-                    title="المحفظة"
+                    title={t('navWallet')}
                   >
                     <Wallet size={16} />
-                    <span>{userProfile?.walletBalance ?? 0} ج.م</span>
+                    <span>{userProfile?.walletBalance ?? 0} {t('currency')}</span>
                   </button>
 
                   {/* Notifications */}
@@ -171,7 +186,7 @@ export default function Navbar() {
                     <button
                       className="navbar-avatar"
                       onClick={() => setDropdownOpen(v => !v)}
-                      title={userProfile?.fullName || 'حسابي'}
+                      title={userProfile?.fullName || t('navDashboard')}
                     >
                       {getInitials()}
                     </button>
@@ -189,15 +204,15 @@ export default function Navbar() {
 
                         <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <User size={16} />
-                          لوحة التحكم
+                          {t('navDashboard')}
                         </Link>
                         <Link to="/dashboard/wallet" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <Wallet size={16} />
-                          محفظتي
+                          {t('navWallet')}
                         </Link>
                         <Link to="/dashboard/settings" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                           <Settings size={16} />
-                          الإعدادات
+                          {t('navSettings')}
                         </Link>
 
                         {isAdmin && (
@@ -205,7 +220,7 @@ export default function Navbar() {
                             <div className="dropdown-divider" />
                             <Link to="/admin" className="navbar-dropdown-item" onClick={() => setDropdownOpen(false)}>
                               <LayoutDashboard size={16} />
-                              لوحة الإدارة
+                              {t('navAdmin')}
                             </Link>
                           </>
                         )}
@@ -213,7 +228,7 @@ export default function Navbar() {
                         <div className="dropdown-divider" />
                         <button className="navbar-dropdown-item danger" onClick={handleLogout}>
                           <LogOut size={16} />
-                          تسجيل الخروج
+                          {t('navLogout')}
                         </button>
                       </div>
                     )}
@@ -222,10 +237,10 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link to="/auth/login" className="btn-ghost" style={{ padding: 'var(--space-2) var(--space-5)', fontSize: 'var(--font-size-sm)' }}>
-                    تسجيل الدخول
+                    {t('navLogin')}
                   </Link>
                   <Link to="/auth/register" className="btn-primary" style={{ padding: 'var(--space-2) var(--space-5)', fontSize: 'var(--font-size-sm)' }}>
-                    إنشاء حساب
+                    {t('navRegister')}
                   </Link>
                 </>
               )}
@@ -248,18 +263,42 @@ export default function Navbar() {
           >
             <X size={28} />
           </button>
-          {navLinks.map(link => (
-            <Link key={link.to} to={link.to} className="mobile-nav-link">
-              {link.label}
-            </Link>
-          ))}
+
+          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+            <button
+              onClick={toggleTheme}
+              style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '14px' }}
+            >
+              {theme === 'midnight' ? '🌙 Night' : theme === 'light' ? '☀️ Light' : '⚡ Neon'}
+            </button>
+            <button
+              onClick={toggleLanguage}
+              style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(79,159,255,0.1)', border: '1px solid rgba(79,159,255,0.3)', cursor: 'pointer', color: 'var(--accent-blue-bright)', fontWeight: 'bold', fontSize: '14px' }}
+            >
+              🌐 {isAr ? 'English' : 'العربية'}
+            </button>
+          </div>
+
+          {NAV_ITEMS.map(item => {
+            const hasNewBadge = isFeatureNew(item.to);
+            return (
+              <Link key={item.to} to={item.to} className="mobile-nav-link" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+                {t(item.key)}
+                {hasNewBadge && (
+                  <span className="new-badge">
+                    {t('badgeNew')}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
           {!currentUser ? (
             <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
-              <Link to="/auth/login" className="btn-ghost">تسجيل الدخول</Link>
-              <Link to="/auth/register" className="btn-primary">إنشاء حساب</Link>
+              <Link to="/auth/login" className="btn-ghost" onClick={() => setMobileOpen(false)}>{t('navLogin')}</Link>
+              <Link to="/auth/register" className="btn-primary" onClick={() => setMobileOpen(false)}>{t('navRegister')}</Link>
             </div>
           ) : (
-            <button className="btn-ghost" onClick={handleLogout}>تسجيل الخروج</button>
+            <button className="btn-ghost" onClick={handleLogout}>{t('navLogout')}</button>
           )}
         </div>
       )}

@@ -4,13 +4,16 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, Zap, Shield, Clock, Star, Users, GamepadIcon, ChevronLeft, 
   Server, Smartphone, Globe, Settings, TrendingUp, FolderKanban, Megaphone,
-  CreditCard, Award, Rocket, Layers
+  CreditCard, Award, Rocket, Layers, ArrowRight
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import Testimonials from '../../components/UI/Testimonials';
 import Portfolio from '../../components/UI/Portfolio';
+import { useSettings } from '../../contexts/SettingsContext';
+import { getTranslation } from '../../utils/translations';
+import { isNew } from '../../utils/newBadge';
 import './Home.css';
 
 // Animated stars generator
@@ -34,22 +37,13 @@ const ICON_MAP = {
   'default': <Layers size={28} />
 };
 
-const FEATURES = [
-  { icon: <Zap size={36} />, name: 'سرعة فائقة', desc: 'خدماتنا تُنجز بأسرع وقت ممكن دون المساس بالجودة' },
-  { icon: <Shield size={36} />, name: 'أمان وموثوقية', desc: 'نظام حماية متكامل لبياناتك وحسابك على الموقع' },
-  { icon: <Award size={36} />, name: 'جودة عالية', desc: 'معايير جودة عالمية في كل خدمة نقدمها لك' },
-  { icon: <Users size={36} />, name: 'دعم 24/7', desc: 'فريق دعم متاح على مدار الساعة للإجابة على استفساراتك' },
-  { icon: <CreditCard size={36} />, name: 'دفع آمن', desc: 'محفظة إلكترونية آمنة مع دعم أورنچ كاش' },
-  { icon: <Star size={36} />, name: 'نظام نقاط', desc: 'اكسب نقاط على كل معاملة واستبدلها بخصومات حصرية' },
-];
-
 const GAMES = [
-  { id: 1, icon: '🔫', name: 'PUBG Mobile', tag: 'شحن UC' },
-  { id: 2, icon: '⚔️', name: 'Free Fire', tag: 'شحن الماس' },
-  { id: 3, icon: '🏆', name: 'Mobile Legends', tag: 'شحن الماسة' },
-  { id: 4, icon: '🎯', name: 'Call of Duty', tag: 'شحن CP' },
-  { id: 5, icon: '⚡', name: 'Fortnite', tag: 'شحن V-Bucks' },
-  { id: 6, icon: '🌟', name: 'Clash of Clans', tag: 'شحن الجواهر' },
+  { id: 1, icon: '🔫', name: 'PUBG Mobile', tag: 'UC' },
+  { id: 2, icon: '⚔️', name: 'Free Fire', tag: 'Diamonds' },
+  { id: 3, icon: '🏆', name: 'Mobile Legends', tag: 'Diamonds' },
+  { id: 4, icon: '🎯', name: 'Call of Duty', tag: 'CP' },
+  { id: 5, icon: '⚡', name: 'Fortnite', tag: 'V-Bucks' },
+  { id: 6, icon: '🌟', name: 'Clash of Clans', tag: 'Gems' },
 ];
 
 const staggerContainer = {
@@ -67,6 +61,18 @@ const fadeUp = {
 
 export default function Home() {
   const [dynamicServices, setDynamicServices] = useState([]);
+  const { language } = useSettings();
+  const isAr = language === 'ar';
+  const t = (key) => getTranslation(language, key);
+
+  const FEATURES = [
+    { icon: <Zap size={36} />, name: t('featSpeed'), desc: t('featSpeedDesc') },
+    { icon: <Shield size={36} />, name: t('featSecurity'), desc: t('featSecurityDesc') },
+    { icon: <Award size={36} />, name: t('featQuality'), desc: t('featQualityDesc') },
+    { icon: <Users size={36} />, name: t('featSupport24'), desc: t('featSupport24Desc') },
+    { icon: <CreditCard size={36} />, name: t('featPayment'), desc: t('featPaymentDesc') },
+    { icon: <Star size={36} />, name: t('featRewards'), desc: t('featRewardsDesc') },
+  ];
 
   useEffect(() => {
     const q = query(collection(db, 'sections'), orderBy('createdAt', 'desc'));
@@ -108,33 +114,33 @@ export default function Home() {
             {/* Text */}
             <motion.div 
               className="hero-text"
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: isAr ? 50 : -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, type: 'spring' }}
             >
               <div className="hero-eyebrow">
                 <span className="hero-eyebrow-dot" />
-                شبكة الخدمات التقنية الذكية في مصر
+                {t('heroEyebrow')}
               </div>
 
               <h1 className="hero-title">
-                منصتك لكل
-                <span className="hero-title-line2"> خدمات التقنية</span>
-                في مكان واحد
+                {t('heroTitleLine1')}
+                <span className="hero-title-line2"> {t('heroTitleLine2')}</span>
+                <br />{t('heroTitleLine3')}
               </h1>
 
               <p className="hero-description">
-                من إنشاء السيرفرات والتطبيقات والمواقع، إلى شحن الألعاب وإدارة التواصل الاجتماعي — كل ما تحتاجه في منصة واحدة احترافية وسريعة
+                {t('heroDesc')}
               </p>
 
               <div className="hero-actions">
                 <Link to="/custom-service" className="btn-primary" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
                   <Zap size={18} />
-                  ابدأ مشروعك الآن
+                  {t('heroStartProject')}
                 </Link>
                 <Link to="/services" className="btn-ghost" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
                   <Rocket size={18} />
-                  استكشف الخدمات
+                  {t('heroExploreServices')}
                 </Link>
               </div>
 
@@ -145,9 +151,9 @@ export default function Home() {
                 variants={staggerContainer}
               >
                 {[
-                  { value: '500+', label: 'عميل راضٍ' },
-                  { value: dynamicServices.length > 0 ? dynamicServices.length.toString() : '...', label: 'أقسام متخصصة' },
-                  { value: '24/7', label: 'دعم متواصل' },
+                  { value: '500+', label: t('statClients') },
+                  { value: dynamicServices.length > 0 ? dynamicServices.length.toString() : '...', label: t('statSections') },
+                  { value: '24/7', label: t('statSupport') },
                 ].map(stat => (
                   <motion.div key={stat.label} variants={fadeUp}>
                     <div className="hero-stat-value">{stat.value}</div>
@@ -167,16 +173,16 @@ export default function Home() {
               <div className="hero-phone-mockup">
                 {/* Floating Cards */}
                 <div className="floating-card floating-card-1">
-                  <div className="floating-card-label">رصيد المحفظة</div>
-                  <div className="floating-card-value">350 ج.م 💳</div>
+                  <div className="floating-card-label">{t('heroCardWallet')}</div>
+                  <div className="floating-card-value">350 {t('currency')} 💳</div>
                 </div>
                 <div className="floating-card floating-card-2">
-                  <div className="floating-card-label">نقاطك المكتسبة</div>
-                  <div className="floating-card-value">1,250 نقطة ⭐</div>
+                  <div className="floating-card-label">{t('heroCardPoints')}</div>
+                  <div className="floating-card-value">1,250 ⭐</div>
                 </div>
                 <div className="floating-card floating-card-3">
-                  <div className="floating-card-label">طلب جاري</div>
-                  <div className="floating-card-value">✅ قيد التنفيذ</div>
+                  <div className="floating-card-label">{t('heroCardOrder')}</div>
+                  <div className="floating-card-value">{t('heroCardStatus')}</div>
                 </div>
 
                 <div className="hero-phone-frame">
@@ -201,7 +207,7 @@ export default function Home() {
                             {ICON_MAP[s.slug] || ICON_MAP['default']}
                           </div>
                           <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                            {s.name.split(' ')[1] || s.name}
+                            {s.name?.split(' ')[1] || s.name}
                           </div>
                         </div>
                       ))}
@@ -225,14 +231,14 @@ export default function Home() {
             variants={fadeUp}
           >
             <div className="section-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Rocket size={18} /> خدماتنا
+              <Rocket size={18} /> {t('servicesEyebrow')}
             </div>
             <h2 className="section-title">
-              كل ما تحتاجه من{' '}
-              <span className="gradient-text">خدمات تقنية</span>
+              {t('servicesTitle1')}{' '}
+              <span className="gradient-text">{t('servicesTitle2')}</span>
             </h2>
             <p className="section-desc">
-              {dynamicServices.length > 0 ? dynamicServices.length : '...'} أقسام متخصصة بأسعار تنافسية وجودة عالمية، مع باقات مرنة تناسب كل الاحتياجات
+              {t('servicesDesc')}
             </p>
           </motion.div>
 
@@ -243,23 +249,33 @@ export default function Home() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            {dynamicServices.map(service => (
-              <motion.div key={service.slug} variants={fadeUp}>
-                <Link to={`/services/${service.slug}`} className="service-card">
-                  <div className="service-icon-wrap" style={{ color: 'white' }}>
-                    {ICON_MAP[service.slug] || ICON_MAP['default']}
-                  </div>
-                  <h3 className="service-name">{service.name}</h3>
-                  <p className="service-desc">{service.desc}</p>
-                  <div className="service-packages">
-                    <span className="service-pkg-count">{service.packages ? service.packages.length : 0} باقات متاحة</span>
-                    <div className="service-arrow" style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--accent-blue-bright)', fontWeight: 700, fontSize: 13 }}>
-                      عرض الخدمة والباقات <ChevronLeft size={16} />
+            {dynamicServices.map(service => {
+              const newlyAdded = isNew(service.createdAt);
+              return (
+                <motion.div key={service.slug} variants={fadeUp}>
+                  <Link to={`/services/${service.slug}`} className="service-card" style={{ position: 'relative' }}>
+                    {newlyAdded && (
+                      <div style={{ position: 'absolute', top: 16, left: isAr ? 'auto' : 16, right: isAr ? 16 : 'auto' }}>
+                        <span className="new-badge">
+                          {t('badgeNew')}
+                        </span>
+                      </div>
+                    )}
+                    <div className="service-icon-wrap" style={{ color: 'white' }}>
+                      {ICON_MAP[service.slug] || ICON_MAP['default']}
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                    <h3 className="service-name">{service.name}</h3>
+                    <p className="service-desc">{service.desc}</p>
+                    <div className="service-packages">
+                      <span className="service-pkg-count">{service.packages ? service.packages.length : 0} {t('servicePkgsAvailable')}</span>
+                      <div className="service-arrow" style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--accent-blue-bright)', fontWeight: 700, fontSize: 13 }}>
+                        {t('serviceViewPkgs')} {isAr ? <ChevronLeft size={16} /> : <ArrowRight size={16} />}
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
@@ -274,10 +290,10 @@ export default function Home() {
             viewport={{ once: true }}
             variants={fadeUp}
           >
-            <div className="section-eyebrow">✨ لماذا Freskvv Tec EG؟</div>
+            <div className="section-eyebrow">{t('featuresEyebrowHeader')}</div>
             <h2 className="section-title">
-              مميزات{' '}
-              <span className="gradient-text">لا مثيل لها</span>
+              {t('featuresTitleHeader1')}{' '}
+              <span className="gradient-text">{t('featuresTitleHeader2')}</span>
             </h2>
           </motion.div>
 
@@ -312,7 +328,7 @@ export default function Home() {
         <div className="container">
           <motion.div 
             className="section-header" 
-            style={{ textAlign: 'right', marginBottom: 'var(--space-8)' }}
+            style={{ textAlign: isAr ? 'right' : 'left', marginBottom: 'var(--space-8)' }}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
@@ -320,14 +336,14 @@ export default function Home() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
               <div>
-                <div className="section-eyebrow" style={{ display: 'inline-flex', marginBottom: 'var(--space-3)' }}>🎮 متجر الألعاب</div>
+                <div className="section-eyebrow" style={{ display: 'inline-flex', marginBottom: 'var(--space-3)' }}>{t('gameStorePreviewEyebrow')}</div>
                 <h2 className="section-title" style={{ marginBottom: 'var(--space-2)' }}>
-                  شحن <span className="gradient-text">ألعابك المفضلة</span>
+                  {t('gameStorePreviewTitle1')} <span className="gradient-text">{t('gameStorePreviewTitle2')}</span>
                 </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>اشحن واكسب نقاط على كل شحنة</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>{t('gameStorePreviewSub')}</p>
               </div>
               <Link to="/game-store" className="btn-ghost">
-                عرض الكل <ArrowLeft size={16} />
+                {t('gameStoreViewAll')} {isAr ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
               </Link>
             </div>
           </motion.div>
@@ -363,19 +379,19 @@ export default function Home() {
             transition={{ duration: 0.8, type: 'spring' }}
           >
             <h2 className="cta-title">
-              ابدأ رحلتك التقنية{' '}
-              <span className="gradient-text">اليوم</span>
+              {t('ctaTitle1')}{' '}
+              <span className="gradient-text">{t('ctaTitle2')}</span>
             </h2>
             <p className="cta-desc">
-              انضم لآلاف العملاء الراضين واحصل على أفضل الخدمات التقنية بأسعار مناسبة
+              {t('ctaDesc')}
             </p>
             <div className="cta-actions">
               <Link to="/auth/register" className="btn-primary" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-10)' }}>
                 <Zap size={18} />
-                إنشاء حساب مجاني
+                {t('ctaRegisterBtn')}
               </Link>
               <Link to="/custom-service" className="btn-ghost" style={{ fontSize: 'var(--font-size-lg)', padding: 'var(--space-4) var(--space-8)' }}>
-                طلب خدمة مخصصة
+                {t('ctaCustomBtn')}
               </Link>
             </div>
           </motion.div>

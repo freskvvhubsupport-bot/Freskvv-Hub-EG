@@ -47,7 +47,7 @@ export default function Services() {
   return (
     <div className="services-page">
       <div className="container">
-        <motion.div 
+        <motion.div
           className="services-page-header"
           initial="hidden"
           animate="show"
@@ -75,55 +75,55 @@ export default function Services() {
           </div>
         ) : (
           services.map((service, index) => (
-            <motion.section 
-            key={service.slug} 
-            className="service-section" 
-            id={service.slug}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-          >
-            <motion.div className="service-section-header" variants={fadeUp}>
-              <div className="service-section-icon" style={{ color: 'var(--accent-blue-bright)', display: 'flex', alignItems: 'center' }}>
-                {ICON_MAP[service.slug] || ICON_MAP['default']}
-              </div>
-              <div>
-                <h2 className="service-section-name">{service.name}</h2>
-                <p className="service-section-desc">{service.desc}</p>
-              </div>
-            </motion.div>
+            <motion.section
+              key={service.slug}
+              className="service-section"
+              id={service.slug}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={staggerContainer}
+            >
+              <motion.div className="service-section-header" variants={fadeUp}>
+                <div className="service-section-icon" style={{ color: 'var(--accent-blue-bright)', display: 'flex', alignItems: 'center' }}>
+                  {ICON_MAP[service.slug] || ICON_MAP['default']}
+                </div>
+                <div>
+                  <h2 className="service-section-name">{service.name}</h2>
+                  <p className="service-section-desc">{service.desc}</p>
+                </div>
+              </motion.div>
 
-            <motion.div className="packages-grid" variants={staggerContainer}>
-              {service.packages && service.packages.map(pkg => (
-                <motion.div key={pkg.id} variants={fadeUp} className={`package-card ${pkg.popular ? 'popular' : ''}`}>
-                  {pkg.popular && <div className="popular-badge">⭐ الأكثر طلباً</div>}
-                  <div className="package-color-line" style={{ background: pkg.color }} />
-                  <div className="package-name">{pkg.name}</div>
-                  <div className="package-price">
-                    {pkg.price}
-                    <span>ج.م</span>
-                  </div>
-                  <div className="package-features">
-                    {pkg.features && pkg.features.map(f => (
-                      <div key={f} className="package-feature">
-                        <Check size={14} style={{ color: pkg.color, flexShrink: 0 }} />
-                        <span>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Link
-                    to={`/services/${service.slug}?pkg=${pkg.id}`}
-                    className="btn-primary"
-                    style={{ width: '100%', justifyContent: 'center', background: `linear-gradient(135deg, ${pkg.color || 'var(--accent-blue)'}, ${(pkg.color || 'var(--accent-blue)')}bb)` }}
-                  >
-                    اشتراك الآن
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
-        )))}
+              <motion.div className="packages-grid" variants={staggerContainer}>
+                {service.packages && service.packages.map(pkg => (
+                  <motion.div key={pkg.id} variants={fadeUp} className={`package-card ${pkg.popular ? 'popular' : ''}`}>
+                    {pkg.popular && <div className="popular-badge">⭐ الأكثر طلباً</div>}
+                    <div className="package-color-line" style={{ background: pkg.color }} />
+                    <div className="package-name">{pkg.name}</div>
+                    <div className="package-price">
+                      {pkg.price}
+                      <span>ج.م</span>
+                    </div>
+                    <div className="package-features">
+                      {pkg.features && pkg.features.map(f => (
+                        <div key={f} className="package-feature">
+                          <Check size={14} style={{ color: pkg.color, flexShrink: 0 }} />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <Link
+                      to={`/services/${service.slug}?pkg=${pkg.id}`}
+                      className="btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', background: `linear-gradient(135deg, ${pkg.color || 'var(--accent-blue)'}, ${(pkg.color || 'var(--accent-blue)')}bb)` }}
+                    >
+                      اشتراك الآن
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.section>
+          )))}
       </div>
     </div>
   );

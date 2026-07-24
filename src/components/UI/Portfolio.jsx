@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, FolderKanban, Server, Smartphone, Globe, Shield, Sparkles, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useSettings } from '../../contexts/SettingsContext';
+import { getTranslation } from '../../utils/translations';
 import './Portfolio.css';
 
 const PROJECTS = [
@@ -83,6 +84,15 @@ const CATEGORIES = [
 
 export default function Portfolio() {
   const [filter, setFilter] = useState('all');
+  const { language } = useSettings();
+  const t = (key) => getTranslation(language, key);
+
+  const categories = [
+    { key: 'all', label: t('portfolioCatAll') },
+    { key: 'servers', label: t('portfolioCatServers') },
+    { key: 'apps', label: t('portfolioCatApps') },
+    { key: 'systems', label: t('portfolioCatSystems') }
+  ];
 
   const filteredProjects = filter === 'all' 
     ? PROJECTS 
@@ -100,19 +110,19 @@ export default function Portfolio() {
           viewport={{ once: true }}
         >
           <div className="section-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <FolderKanban size={18} /> معرض أعمالنا
+            <FolderKanban size={18} /> {t('portfolioEyebrow')}
           </div>
           <h2 className="section-title">
-            مشاريع تفخر بها <span className="gradient-text">Freskvv Tec EG</span>
+            {t('portfolioTitle1')} <span className="gradient-text">{t('portfolioTitle2')}</span>
           </h2>
           <p className="section-desc">
-            نماذج من المشاريع والأنظمة التي قمنا بتصميمها وتنفيذها لعملائنا بأعلى جودة ودقة
+            {t('portfolioDesc')}
           </p>
         </motion.div>
 
         {/* Filter Pills */}
         <div className="portfolio-filters">
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <button
               key={cat.key}
               className={`portfolio-filter-btn ${filter === cat.key ? 'active' : ''}`}
@@ -155,7 +165,7 @@ export default function Portfolio() {
                   <div className="portfolio-footer">
                     <span className="portfolio-stat">⚡ {project.stats}</span>
                     <Link to="/custom-service" className="portfolio-link">
-                      اطلب مثله <ArrowLeft size={15} />
+                      {t('portfolioOrderSimilar')} <ArrowLeft size={15} style={{ transform: language === 'en' ? 'rotate(180deg)' : 'none' }} />
                     </Link>
                   </div>
                 </div>
@@ -167,11 +177,11 @@ export default function Portfolio() {
         {/* CTA Footer inside Portfolio */}
         <div className="portfolio-cta">
           <div>
-            <h3>عندك فكرة مشروع حابب تنفذها؟</h3>
-            <p>فريقنا جاهز لتحويل فكرتك إلى تطبيق أو موقع احترافي بأعلى سرعة وأقل تكلفة</p>
+            <h3>{t('portfolioCtaTitle')}</h3>
+            <p>{t('portfolioCtaDesc')}</p>
           </div>
           <Link to="/custom-service" className="btn-primary" style={{ padding: '12px 28px' }}>
-            <Sparkles size={18} /> اطلب عرض سعر مخصص
+            <Sparkles size={18} /> {t('portfolioCtaBtn')}
           </Link>
         </div>
 

@@ -2,13 +2,19 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Bell, ArrowRight, CheckCheck, Sparkles } from 'lucide-react';
+import { Bell, ArrowRight, ArrowLeft, CheckCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSettings } from '../../contexts/SettingsContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { language } = useSettings();
+  const isAr = language === 'ar';
+  const t = (key) => getTranslation(language, key);
+
   const [readIds, setReadIds] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('readNotifIds') || '[]');
@@ -57,20 +63,20 @@ export default function Notifications() {
             to="/dashboard"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', textDecoration: 'none', marginBottom: 24, fontSize: 14, background: 'rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: 99, border: '1px solid var(--border-glass)' }}
           >
-            <ArrowRight size={16} /> العودة للوحة التحكم
+            {isAr ? <ArrowRight size={16} /> : <ArrowLeft size={16} />} {t('notifBackToDash')}
           </Link>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h1 style={{ fontSize: '2rem', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-                <Bell size={28} color="var(--accent-blue)" /> الإشعارات
+                <Bell size={28} color="var(--accent-blue)" /> {t('notifTitle')}
                 {unreadCount > 0 && (
                   <span style={{ background: '#ef4444', color: 'white', fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 99 }}>
-                    {unreadCount} جديد
+                    {unreadCount} {t('notifNewBadge')}
                   </span>
                 )}
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>أحدث الإشعارات والتنبيهات الخاصة بحسابك والموقع</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('notifSubtitle')}</p>
             </div>
             {unreadCount > 0 && (
               <button
@@ -79,7 +85,7 @@ export default function Notifications() {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,159,255,0.2)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(79,159,255,0.1)'}
               >
-                <CheckCheck size={16} /> تحديد الكل كمقروء
+                <CheckCheck size={16} /> {t('notifMarkAllRead')}
               </button>
             )}
           </div>
@@ -88,7 +94,6 @@ export default function Notifications() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
             <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(79,159,255,0.2)', borderTop: '3px solid #4f9fff', animation: 'spin 0.7s linear infinite', margin: '0 auto 16px' }} />
-            جاري تحميل الإشعارات...
           </div>
         ) : notifications.length === 0 ? (
           <motion.div
@@ -97,8 +102,8 @@ export default function Notifications() {
             style={{ background: 'rgba(255,255,255,0.02)', padding: 80, borderRadius: 20, textAlign: 'center', border: '1px solid var(--border-glass)' }}
           >
             <Bell size={52} style={{ color: 'var(--text-muted)', marginBottom: 16, opacity: 0.3 }} />
-            <h3 style={{ marginBottom: 8 }}>لا توجد إشعارات جديدة</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>ستظهر هنا الإشعارات والتحديثات الهامة</p>
+            <h3 style={{ marginBottom: 8 }}>{t('notifEmptyTitle')}</h3>
+            <p style={{ color: 'var(--text-secondary)' }}>{t('notifEmptyDesc')}</p>
           </motion.div>
         ) : (
           <motion.div
@@ -124,7 +129,8 @@ export default function Notifications() {
                       border: isRead
                         ? '1px solid var(--border-glass)'
                         : '1px solid rgba(79,159,255,0.25)',
-                      borderRight: isRead ? '4px solid var(--border-glass)' : '4px solid var(--accent-blue)',
+                      borderRight: isAr ? (isRead ? '4px solid var(--border-glass)' : '4px solid var(--accent-blue)') : 'none',
+                      borderLeft: !isAr ? (isRead ? '4px solid var(--border-glass)' : '4px solid var(--accent-blue)') : 'none',
                       position: 'relative',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
@@ -133,7 +139,7 @@ export default function Notifications() {
                   >
                     {/* Unread dot */}
                     {!isRead && (
-                      <div style={{ position: 'absolute', top: 20, left: 20, width: 9, height: 9, borderRadius: '50%', background: 'var(--accent-blue)', boxShadow: '0 0 8px var(--accent-blue)' }} />
+                      <div style={{ position: 'absolute', top: 20, left: isAr ? 'auto' : 20, right: isAr ? 20 : 'auto', width: 9, height: 9, borderRadius: '50%', background: 'var(--accent-blue)', boxShadow: '0 0 8px var(--accent-blue)' }} />
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
@@ -147,17 +153,17 @@ export default function Notifications() {
                         </div>
                         <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, whiteSpace: 'pre-wrap' }}>{n.message}</p>
                       </div>
-                      <div style={{ textAlign: 'left', flexShrink: 0 }}>
+                      <div style={{ textAlign: isAr ? 'left' : 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
-                          {n.createdAt?.toDate?.()?.toLocaleDateString('ar-EG')}
+                          {n.createdAt?.toDate?.()?.toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
                         </div>
                         {isRead ? (
                           <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <CheckCheck size={12} /> مقروء
+                            <CheckCheck size={12} /> {t('notifReadLabel')}
                           </span>
                         ) : (
                           <span style={{ fontSize: 11, background: 'rgba(79,159,255,0.15)', color: 'var(--accent-blue-bright)', padding: '3px 10px', borderRadius: 99, fontWeight: 700 }}>
-                            جديد
+                            {t('notifNewBadge')}
                           </span>
                         )}
                       </div>
